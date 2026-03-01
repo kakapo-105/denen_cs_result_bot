@@ -1,0 +1,11 @@
+app = "denen-cs-result-bot"
+primary_region = "nrt"
+
+[build]
+
+[env]
+  STATE_FILE = "/data/state.json"
+
+[[mounts]]
+  source = "bot_data"
+  destination = "/data"

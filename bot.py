@@ -24,7 +24,7 @@ BLOG_TAG_URL = os.getenv(
     "BLOG_TAG_URL",
     "https://supersolenoid.jp/?tag=CS%E5%85%A5%E8%B3%9E%E6%95%B0%E3%83%A9%E3%83%B3%E3%82%AD%E3%83%B3%E3%82%B0",
 )
-STATE_FILE = Path("state.json")
+STATE_FILE = Path(os.getenv("STATE_FILE", "state.json"))
 JST = ZoneInfo("Asia/Tokyo")
 SEND_TIME = time(hour=9, minute=0, tzinfo=JST)
 
