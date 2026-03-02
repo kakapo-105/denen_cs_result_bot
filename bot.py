@@ -45,19 +45,6 @@ def save_last_entry_id(entry_id: int) -> None:
         json.dump({"last_entry_id": entry_id}, f)
 
 
-def get_og_image(url: str) -> str | None:
-    """記事ページから og:image を取得する"""
-    try:
-        resp = requests.get(url, timeout=10, headers=HEADERS)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-        og = soup.find("meta", property="og:image")
-        if og and og.get("content"):
-            return og["content"]
-    except Exception as e:
-        logger.warning("og:image 取得失敗 %s: %s", url, e)
-    return None
-
 
 def scrape_articles() -> list[dict]:
     """タグページから記事一覧（タイトル・URL・サムネイル）を取得する"""
@@ -123,20 +110,25 @@ class DenenBot(discord.Client):
             logger.info("新着記事なし")
             return
 
+        # 初回起動時（state.json未作成）は送信せず最新IDを保存して終了
+        if last_id == 0:
+            max_id = max(a["entry_id"] for a in new_articles)
+            save_last_entry_id(max_id)
+            logger.info("初回起動: 現在の最新記事IDを保存しました (last_entry_id → %d)", max_id)
+            return
+
         # 古い順に送信する
         new_articles.sort(key=lambda a: a["entry_id"])
 
         logger.info("%d 件の新着記事を送信します", len(new_articles))
         for article in new_articles:
-            og_image = get_og_image(article["url"]) or article["thumbnail"]
-
             embed = discord.Embed(
                 title=article["title"],
                 url=article["url"],
                 color=discord.Color.blue(),
             )
-            if og_image:
-                embed.set_image(url=og_image)
+            if article["thumbnail"]:
+                embed.set_image(url=article["thumbnail"])
 
             await channel.send(embed=embed)
 
