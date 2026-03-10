@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 BLOG_TAG_URL = os.getenv(
     "BLOG_TAG_URL",
-    "https://supersolenoid.jp/?tag=CS%E5%85%A5%E8%B3%9E%E6%95%B0%E3%83%A9%E3%83%B3%E3%82%AD%E3%83%B3%E3%82%B0",
+    "https://supersolenoid.jp/?tag=%E5%A4%A7%E4%BC%9A%E7%B5%90%E6%9E%9C",
 )
 STATE_FILE = Path(os.getenv("STATE_FILE", "state.json"))
 JST = ZoneInfo("Asia/Tokyo")
@@ -52,27 +52,31 @@ def scrape_articles() -> list[dict]:
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
+    main_column = soup.select_one("#main-column")
+    if main_column is None:
+        logger.warning("#main-column が見つかりません")
+        return []
+
     articles = []
-    seen_urls: set[str] = set()
-    article_pattern = re.compile(r"https://supersolenoid\.jp/blog-entry-\d+\.html")
-
-    for link in soup.find_all("a", href=article_pattern):
-        url = link["href"]
-        if url in seen_urls:
+    for entry in main_column.select(".EntryBlock"):
+        title_el = entry.select_one(".EntryTitle a[href]")
+        if title_el is None:
             continue
-        seen_urls.add(url)
 
-        title_el = link.select_one(".fc2_recent_entry_thumb_blogtitle")
-        img_el = link.find("img")
-
-        title = title_el.get_text(strip=True) if title_el else link.get_text(strip=True)
-        thumbnail = img_el.get("src") if img_el else None
-
+        url = title_el.get("href", "")
         m = ENTRY_ID_RE.search(url)
-        entry_id = int(m.group(1)) if m else 0
+        if not m:
+            continue
 
-        if title:
-            articles.append({"url": url, "title": title, "thumbnail": thumbnail, "entry_id": entry_id})
+        title = title_el.get_text(strip=True)
+        if not title:
+            continue
+
+        img_el = entry.select_one(".EntryBody img")
+        thumbnail = img_el.get("src") if img_el else None
+        entry_id = int(m.group(1))
+
+        articles.append({"url": url, "title": title, "thumbnail": thumbnail, "entry_id": entry_id})
 
     return articles
 
