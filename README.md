@@ -1,6 +1,6 @@
 # denen_cs_result_bot
 
-田園ブログ（supersolenoid.jp）の「CS入賞数ランキング」タグの新着記事を、毎日9時（JST）にDiscordへ自動投稿するBotです。
+田園ブログ（supersolenoid.jp）の「大会結果」タグの新着記事を、毎日9時（JST）にDiscordへ自動投稿するBotです。
 
 ## 動作概要
 
@@ -66,7 +66,7 @@ fly deploy
 |--------|------|------|
 | `DISCORD_TOKEN` | ✅ | Discord Bot トークン |
 | `DISCORD_CHANNEL_ID` | ✅ | 送信先チャンネルID |
-| `BLOG_TAG_URL` | | 監視するタグページURL（省略時はCS入賞数ランキングタグ） |
+| `BLOG_TAG_URL` | | 監視するタグページURL（省略時は大会結果タグ） |
 
 ローカルで動かす場合は `.env.example` をコピーして `.env` を作成してください。
 
