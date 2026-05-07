@@ -134,11 +134,18 @@ class DenenBot(discord.Client):
             if article["thumbnail"]:
                 embed.set_image(url=article["thumbnail"])
 
-            await channel.send(embed=embed)
+            try:
+                await channel.send(embed=embed)
+            except Exception as e:
+                logger.error("記事送信失敗 (entry_id=%d): %s", article["entry_id"], e)
 
         max_id = max(a["entry_id"] for a in new_articles)
         save_last_entry_id(max_id)
         logger.info("送信完了 (last_entry_id → %d)", max_id)
+
+    @daily_post.error
+    async def on_daily_post_error(self, error: Exception) -> None:
+        logger.error("daily_post で予期しないエラーが発生しました: %s", error, exc_info=True)
 
     @daily_post.before_loop
     async def before_daily_post(self) -> None:
